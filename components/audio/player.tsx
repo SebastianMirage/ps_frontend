@@ -25,7 +25,11 @@ import {
 import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 import { useAudio } from "~/hooks/use-audio";
-import { useAudioStore } from "~/lib/audio-store";
+import {
+  useAudioStore,
+  type InsertMode,
+  type RepeatMode,
+} from "~/lib/audio-store";
 import { formatDuration, type Track } from "~/lib/html-audio";
 import { cn } from "~/lib/utils";
 import { Fader } from "~/components/audio/fader";
@@ -219,7 +223,7 @@ function AudioPlayerButton({
   if (tooltipLabel) {
     return (
       <Tooltip>
-        <TooltipTrigger render={button} />
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
         <TooltipContent sideOffset={4}>{tooltipLabel}</TooltipContent>
       </Tooltip>
     );
@@ -414,22 +418,20 @@ const AudioPlayerVolume = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <AudioPlayerButton
-            className={cn("hidden md:flex", className)}
-            data-slot="audio-volume-button"
-            size={size}
-            tooltipLabel={
-              isMuted
-                ? "Muted"
-                : `Volume ${Math.round(effectiveVolumePercent)}%`
-            }
-            variant={variant}
-          />
-        }
-      >
-        <Icon className={cn(isMuted && "opacity-40")} />
+      <DropdownMenuTrigger asChild>
+        <AudioPlayerButton
+          className={cn("hidden md:flex", className)}
+          data-slot="audio-volume-button"
+          size={size}
+          tooltipLabel={
+            isMuted
+              ? "Muted"
+              : `Volume ${Math.round(effectiveVolumePercent)}%`
+          }
+          variant={variant}
+        >
+          <Icon className={cn(isMuted && "opacity-40")} />
+        </AudioPlayerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="center"
@@ -448,7 +450,7 @@ const AudioPlayerVolume = ({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem closeOnClick={false}>
+          <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
             <div className="flex items-center gap-2">
               <AudioPlayerButton
                 aria-label={isMuted ? "Unmute" : "Mute"}
@@ -1252,23 +1254,21 @@ const AudioQueueRepeatMode = ({
 
   return (
     <Tooltip>
-      <TooltipTrigger
-        render={
-          <Toggle
-            aria-label={repeatTooltip}
-            className={cn(
-              "[&_svg]:text-primary",
-              className,
-              isPressed && "bg-accent! text-accent-foreground!"
-            )}
-            data-slot="audio-queue-repeat-mode"
-            onPressedChange={handleRepeat}
-            pressed={isPressed}
-            {...props}
-          />
-        }
-      >
-        <Icon />
+      <TooltipTrigger asChild>
+        <Toggle
+          aria-label={repeatTooltip}
+          className={cn(
+            "[&_svg]:text-primary",
+            className,
+            isPressed && "bg-accent! text-accent-foreground!"
+          )}
+          data-slot="audio-queue-repeat-mode"
+          onPressedChange={handleRepeat}
+          pressed={isPressed}
+          {...props}
+        >
+          <Icon />
+        </Toggle>
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={4}>
         {repeatTooltip}
@@ -1298,23 +1298,21 @@ const AudioQueueShuffle = ({
 
   return (
     <Tooltip>
-      <TooltipTrigger
-        render={
-          <Toggle
-            aria-label="Shuffle"
-            className={cn(
-              "[&_svg]:text-primary",
-              className,
-              shuffleEnabled && "bg-accent! text-accent-foreground!"
-            )}
-            data-slot="audio-queue-shuffle"
-            onPressedChange={handleShuffle}
-            pressed={shuffleEnabled}
-            {...props}
-          />
-        }
-      >
-        <ShuffleIcon />
+      <TooltipTrigger asChild>
+        <Toggle
+          aria-label="Shuffle"
+          className={cn(
+            "[&_svg]:text-primary",
+            className,
+            shuffleEnabled && "bg-accent! text-accent-foreground!"
+          )}
+          data-slot="audio-queue-shuffle"
+          onPressedChange={handleShuffle}
+          pressed={shuffleEnabled}
+          {...props}
+        >
+          <ShuffleIcon />
+        </Toggle>
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={4}>
         Shuffle {shuffleEnabled ? "on" : "off"}
@@ -1337,19 +1335,17 @@ const AudioQueuePreferences = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <AudioPlayerButton
-            className={cn(className)}
-            data-slot="audio-queue-preferences-trigger"
-            size={size}
-            tooltipLabel={tooltipLabel}
-            variant={variant}
-            {...props}
-          />
-        }
-      >
-        <SlidersHorizontalIcon />
+      <DropdownMenuTrigger asChild>
+        <AudioPlayerButton
+          className={cn(className)}
+          data-slot="audio-queue-preferences-trigger"
+          size={size}
+          tooltipLabel={tooltipLabel}
+          variant={variant}
+          {...props}
+        >
+          <SlidersHorizontalIcon />
+        </AudioPlayerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
@@ -1359,7 +1355,7 @@ const AudioQueuePreferences = ({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Repeat Mode</DropdownMenuLabel>
           <DropdownMenuRadioGroup
-            onValueChange={(value) => setRepeatMode(value)}
+            onValueChange={(value) => setRepeatMode(value as RepeatMode)}
             value={repeatMode}
           >
             <DropdownMenuRadioItem value="none">None</DropdownMenuRadioItem>
@@ -1373,7 +1369,7 @@ const AudioQueuePreferences = ({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Insert Mode</DropdownMenuLabel>
           <DropdownMenuRadioGroup
-            onValueChange={(value) => setInsertMode(value)}
+            onValueChange={(value) => setInsertMode(value as InsertMode)}
             value={insertMode}
           >
             <DropdownMenuRadioItem value="first">First</DropdownMenuRadioItem>
@@ -1465,17 +1461,15 @@ const AudioQueue = React.memo(
         }}
         open={dialogOpen}
       >
-        <DialogTrigger
-          render={
-            <AudioPlayerButton
-              data-slot="audio-queue-trigger"
-              size="icon"
-              tooltipLabel="Queue"
-              variant="outline"
-            />
-          }
-        >
-          <QueueIcon />
+        <DialogTrigger asChild>
+          <AudioPlayerButton
+            data-slot="audio-queue-trigger"
+            size="icon"
+            tooltipLabel="Queue"
+            variant="outline"
+          >
+            <QueueIcon />
+          </AudioPlayerButton>
         </DialogTrigger>
         <DialogContent
           aria-label="Select a track"
@@ -1569,22 +1563,19 @@ function AudioPlaybackSpeed({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        disabled={isLiveStream}
-        render={
-          <AudioPlayerButton
-            className={cn(className)}
-            data-slot="audio-playback-speed-button"
-            disabled={isLiveStream}
-            size={size}
-            tooltipLabel={tooltipLabel}
-            variant={variant}
-            {...props}
-          />
-        }
-      >
-        {!isIconSize && <GaugeIcon />}
-        <span className="font-mono text-xs">{displayLabel}</span>
+      <DropdownMenuTrigger asChild disabled={isLiveStream}>
+        <AudioPlayerButton
+          className={cn(className)}
+          data-slot="audio-playback-speed-button"
+          disabled={isLiveStream}
+          size={size}
+          tooltipLabel={tooltipLabel}
+          variant={variant}
+          {...props}
+        >
+          {!isIconSize && <GaugeIcon />}
+          <span className="font-mono text-xs">{displayLabel}</span>
+        </AudioPlayerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"

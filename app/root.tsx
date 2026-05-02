@@ -7,16 +7,21 @@ import {
   isRouteErrorResponse,
 } from "react-router"
 
+import { AudioProvider } from "@/components/audio/provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import type { Route } from "./+types/root"
 import "./app.css"
 
-
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+          @import
+          url('https://fonts.googleapis.com/css2?family=Jacquard+12&display=swap');
+        </style>
         <Meta />
         <Links />
       </head>
@@ -30,7 +35,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />
+  return (
+    <TooltipProvider>
+      <AudioProvider tracks={[]}>
+        <Outlet />
+      </AudioProvider>
+    </TooltipProvider>
+  )
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

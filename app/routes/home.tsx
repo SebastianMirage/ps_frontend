@@ -1,28 +1,39 @@
-import {
-  Field,
-  FieldLabel,
-  FieldGroup,
-  FieldDescription,
-  FieldContent,
-} from "~/components/ui/field"
-import { Input } from "~/components/ui/input"
-import { Button } from "~/components/ui/button"
-import { Root as RadioGroup } from "@radix-ui/react-radio-group"
-import { RadioGroupItem } from "~/components/ui/radio-group"
-import { useState } from "react"
+﻿import {
+  AudioPlayer,
+  AudioPlayerControlBar,
+  AudioPlayerControlGroup,
+  AudioPlayerFastForward,
+  AudioPlayerPlay,
+  AudioPlayerRewind,
+  AudioPlayerSeekBar,
+  AudioPlayerTimeDisplay,
+  AudioPlayerVolume,
+} from "@/components/audio/player"
+import type { Track } from "@/lib/html-audio"
+import { useAudioStore } from "@/lib/audio-store"
+import { useEffect, useState } from "react"
+import Form from "~/components/Form"
 
 export default function Home() {
+  //State
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [radioOption, setRadioOption] = useState<string>("sala-concierto")
   const [audioURL, setAudioURL] = useState("")
   const [isAudio, setIsAudio] = useState(false)
+  const setQueue = useAudioStore((state) => state.setQueue)
+
+  useEffect(() => {
+    return () => {
+      if (audioURL) {
+        URL.revokeObjectURL(audioURL)
+      }
+    }
+  }, [audioURL])
 
   const handleSubmit = async () => {
     if (!audioFile) return
 
-    //Crear datos del formularo
     const formData = new FormData()
-    //Campos del formulario
     formData.append("file", audioFile)
 
     const response = await fetch(
@@ -40,9 +51,16 @@ export default function Home() {
     if (response.status === 200) {
       const audioBlob = await response.blob()
       const url = URL.createObjectURL(audioBlob)
+      const processedTrack: Track = {
+        id: `processed-${Date.now()}`,
+        title: audioFile.name || "Audio procesado",
+        artist: radioOption,
+        url,
+      }
+
       setAudioURL(url)
+      setQueue([processedTrack], 0)
       setIsAudio(true)
-      console.log("ok")
       return
     }
   }
@@ -53,59 +71,42 @@ export default function Home() {
   }
 
   return (
-    <div className="container flex max-w-screen items-center justify-center">
-      <div className="min-w-lg p-6">
-        <FieldGroup className="py-4">
-          <Field>
-            <FieldLabel htmlFor="input">Audio de entrada</FieldLabel>
-            <Input
-              id="file-input"
-              type="file"
-              accept=".wav"
-              onChange={handleInput}
-            ></Input>
-            <FieldDescription>Sube tu archivo de audio</FieldDescription>
-          </Field>
-          <RadioGroup
-            defaultValue="sala-concierto"
-            className="w-fit"
-            onValueChange={(value: string) => setRadioOption(value)}
-          >
-            <Field orientation="horizontal" className="py-2">
-              <RadioGroupItem value="sala-concierto" id="desc-r1" />
-              <FieldContent>
-                <FieldLabel htmlFor="desc-r1">Sala de conciertos</FieldLabel>
-                <FieldDescription>
-                  Respuesta impulsional de una sala de conciertos. Reverberación
-                  moderada:
-                </FieldDescription>
-              </FieldContent>
-            </Field>
-            <Field orientation="horizontal" className="py-2">
-              <RadioGroupItem value="catedral" id="desc-r2" />
-              <FieldContent>
-                <FieldLabel htmlFor="desc-r2">Catedral</FieldLabel>
-                <FieldDescription>
-                  Respuesta impulsional de una catedral. Reverberación fuerte.
-                </FieldDescription>
-              </FieldContent>
-            </Field>
-            <Field orientation="horizontal" className="py-2">
-              <RadioGroupItem value="cuarto" id="desc-r3" />
-              <FieldContent>
-                <FieldLabel htmlFor="desc-r3">Cuarto pequeño</FieldLabel>
-                <FieldDescription>
-                  Respuesta impulsional para una habitación pequeña. Atenuación
-                  leve.
-                </FieldDescription>
-              </FieldContent>
-            </Field>
-          </RadioGroup>
-
-          <Button onClick={handleSubmit}>Envíar</Button>
-        </FieldGroup>
-        <div>{isAudio && <audio controls src={audioURL}></audio>}</div>
+    <>
+      <div className="jacquard-12-regular text-center text-6xl my-6">
+        <p>Matlab sound engine</p>
       </div>
-    </div>
+      <div className="container flex max-w-screen items-center justify-center">
+        <div className="mt-4 w-lg rounded-lg p-6">
+          <div className="mx-auto w-2xs">
+            <img src="/image.png" alt="" />
+          </div>
+          <Form
+            handleInput={handleInput}
+            handleSubmit={handleSubmit}
+            setRadioOption={setRadioOption}
+          />
+
+          {isAudio && (
+            <AudioPlayer className="mt-6">
+              <AudioPlayerControlBar variant="stacked">
+                <AudioPlayerControlGroup>
+                  <AudioPlayerTimeDisplay />
+                  <AudioPlayerSeekBar />
+                  <AudioPlayerTimeDisplay remaining />
+                </AudioPlayerControlGroup>
+                <AudioPlayerControlGroup className="justify-center">
+                  <AudioPlayerControlGroup className="w-auto">
+                    <AudioPlayerRewind />
+                    <AudioPlayerPlay />
+                    <AudioPlayerFastForward />
+                  </AudioPlayerControlGroup>
+                  <AudioPlayerVolume />
+                </AudioPlayerControlGroup>
+              </AudioPlayerControlBar>
+            </AudioPlayer>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
