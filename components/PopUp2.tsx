@@ -30,7 +30,7 @@ export function DialogScrollableContent({
           <div className="py-2">
             <DialogTitle>Mi audio</DialogTitle>
             <DialogDescription className="py-2">
-              Archivo de auido cargado.
+              Archivo de audio cargado.
             </DialogDescription>
             <WaveForm audioURL={uploadedAudioURL} />
           </div>
@@ -44,7 +44,7 @@ export function DialogScrollableContent({
           <div className="py-4">
             <DialogTitle>Respuesta impulsional</DialogTitle>
             <DialogDescription className="py-2">
-              Respuesta impulsional seleccionada
+              Respuesta impulsional seleccionada.
             </DialogDescription>
             <WaveForm audioURL={irURL} />
           </div>
